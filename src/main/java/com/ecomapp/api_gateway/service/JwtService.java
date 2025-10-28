@@ -1,6 +1,8 @@
 package com.ecomapp.api_gateway.service;
 
 import java.security.Key;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -24,15 +26,18 @@ public class JwtService {
         this.JWT_SECRET_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET_KEY));
     }
 
-    public String decodeJwt(String token) {
+    public Map<String, String> decodeJwt(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                         .setSigningKey(JWT_SECRET_KEY)
                         .build()
                         .parseClaimsJws(token)
                         .getBody();
+            Map<String, String> userInfo = new HashMap<>();
             String userId = claims.getSubject();
-            return userId;
+            userInfo.put("userId", userId);
+            userInfo.put("role", claims.get("role", String.class));
+            return userInfo;
         } catch (ExpiredJwtException e) {
             throw new CustomException("JWT Token has expired", HttpStatus.UNAUTHORIZED);
         } catch (UnsupportedJwtException e) {

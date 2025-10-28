@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import com.ecomapp.api_gateway.exception.CustomException;
 import com.ecomapp.api_gateway.service.JwtService;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -48,12 +50,13 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
 
       String token = authHeader.substring(7);
       try {
-        String userId = jwtService.decodeJwt(token);
+        Map<String,String> userInfo = jwtService.decodeJwt(token);
 
         // Forward userId to downstream services
         var modifiedRequest = exchange.getRequest()
             .mutate()
-            .header("X-User-Id", userId)
+            .header("X-User-Id", userInfo.get("userId"))
+            .header("X-User-Role", userInfo.get("role"))
             .build();
 
         return chain.filter(exchange.mutate().request(modifiedRequest).build());
