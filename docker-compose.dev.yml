@@ -1,0 +1,18 @@
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    # depends_on:
+    # - user-service
+    # - inventory-service
+    # - order-service
+    command: ["./mvnw", "spring-boot:run", "-Dspring-boot.run.fork=false"]
+    networks:
+      - e_com_network
+
+networks:
+  e_com_network:
+    external: true
