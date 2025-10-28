@@ -1,11 +1,9 @@
 package com.ecomapp.api_gateway.filter;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
 
+import com.ecomapp.api_gateway.exception.CustomException;
 import com.ecomapp.api_gateway.service.JwtService;
-
-import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -38,20 +36,19 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     return (exchange, chain) -> {
       String path = exchange.getRequest().getURI().getPath();
 
-      // Skip auth for login/register routes
-      if (path.contains("/auth/login") || path.contains("/auth/register") || path.contains("/health")) {
+      // Skip auth for login and health routes
+      if (path.contains("/auth/send-otp") || path.contains("/auth/verify-otp") || path.contains("/health")) {
         return chain.filter(exchange);
       }
 
       String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
       if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-        return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        throw new CustomException("Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
       }
 
       String token = authHeader.substring(7);
       try {
-        jwtService.validateToken(token);
-        String userId = jwtService.extractUserId(token);
+        String userId = jwtService.decodeJwt(token);
 
         // Forward userId to downstream services
         var modifiedRequest = exchange.getRequest()
@@ -62,14 +59,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
         return chain.filter(exchange.mutate().request(modifiedRequest).build());
 
       } catch (Exception e) {
-        return onError(exchange, "Invalid token: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+        throw new CustomException("Invalid token: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
       }
     };
-  }
-
-  private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
-    exchange.getResponse().setStatusCode(httpStatus);
-    return exchange.getResponse().setComplete();
   }
 
   public static class Config {

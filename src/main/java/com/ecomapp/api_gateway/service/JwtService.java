@@ -1,28 +1,48 @@
 package com.ecomapp.api_gateway.service;
 
+import java.security.Key;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.ecomapp.api_gateway.exception.CustomException;
+
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
-    public static final String JWT_SECRET_KEY = "jwt_secret_key";
+    private final Key JWT_SECRET_KEY;
 
-    public void validateToken(String token) {
-      Jwts.parserBuilder()
-          .setSigningKey(Keys.hmacShaKeyFor(JWT_SECRET_KEY.getBytes()))
-          .build()
-          .parseClaimsJws(token);
+    public JwtService(@Value("${jwt.secret}") String JWT_SECRET_KEY) {
+        this.JWT_SECRET_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET_KEY));
     }
 
-    public String extractUserId(final String token) {
-      Claims claims = Jwts.parserBuilder()
-          .setSigningKey(Keys.hmacShaKeyFor(JWT_SECRET_KEY.getBytes()))
-          .build()
-          .parseClaimsJws(token)
-          .getBody();
-      return claims.getSubject();
+    public String decodeJwt(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(JWT_SECRET_KEY)
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+            String userId = claims.getSubject();
+            return userId;
+        } catch (ExpiredJwtException e) {
+            throw new CustomException("JWT Token has expired", HttpStatus.UNAUTHORIZED);
+        } catch (UnsupportedJwtException e) {
+            throw new CustomException("Unsupported JWT token format", HttpStatus.UNAUTHORIZED);
+        } catch (MalformedJwtException e) {
+            throw new CustomException("Invalid JWT Token", HttpStatus.UNAUTHORIZED);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException("JWT token is empty or null", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            throw new CustomException("An unexpected JWT error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
