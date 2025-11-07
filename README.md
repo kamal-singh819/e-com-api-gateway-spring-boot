@@ -7,14 +7,17 @@ This is the API Gateway service for the E-Commerce microservices application. It
 The API Gateway is built using Spring Cloud Gateway and serves as the central routing and security layer for the following microservices:
 
 1. User Service (Spring Boot) - Port 8081
+   - Repo Link: https://github.com/kamal-singh819/e-com-user-service-spring-boot
    - Handles user authentication and management
    - Endpoints: `/api/users/**`
 
 2. Inventory Service (Spring Boot) - Port 8082
+   - Repo Link: https://github.com/kamal-singh819/e-com-inventory-service-spring-boot
    - Manages product inventory and catalog
    - Endpoints: `/api/inventory/**`
 
 3. Order Service (Node.js/Express) - Port 8083
+   - Repo Link: https://github.com/kamal-singh819/e-com-order-service-node
    - Handles order processing and management
    - Endpoints: `/api/orders/**`
 
