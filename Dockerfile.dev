@@ -12,5 +12,5 @@ RUN chmod +x mvnw && ./mvnw -q -DskipTests dependency:go-offline
 COPY src ./src
 
 # mount full project (from docker-compose.dev.yml) so edits on host are visible
-EXPOSE 8080
+EXPOSE 4000
 CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.fork=false"]

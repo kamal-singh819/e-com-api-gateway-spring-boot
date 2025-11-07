@@ -3,8 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    container_name: api-gateway
     ports:
-      - "8080:8080"
+      - "4000:4000"
     # depends_on:
     # - user-service
     # - inventory-service

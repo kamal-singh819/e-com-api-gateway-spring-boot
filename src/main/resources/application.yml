@@ -1,10 +1,10 @@
 server:
-  port: 8080
+  port: 4000
 
 spring:
   application:
     name: api-gateway
-  
+
   cloud:
     gateway:
       server:
@@ -33,6 +33,21 @@ spring:
               filters:
                 - StripPrefix=2
                 - JwtAuthenticationFilter
+            
+            # - id: static_files_route
+            #   uri: http://localhost:4000
+            #   predicates:
+            #   - Path=/uploads/**
+            #   filters:
+            #     - StripPrefix=1
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+  http:
+    codec:
+      max-in-memory-size: 10MB
 
 management:
   endpoints:
